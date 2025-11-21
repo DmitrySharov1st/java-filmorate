@@ -44,7 +44,7 @@ public class FilmController {
 
         if (!films.containsKey(film.getId())) {
             log.error("Фильм с ID {} не найден", film.getId());
-            throw new NotFoundException("Фильм с ID " + film.getId() + " не найден");
+            throw new NotFoundException(String.format("Фильм с ID %d не найден", film.getId()));
         }
 
         validateFilmReleaseDate(film);

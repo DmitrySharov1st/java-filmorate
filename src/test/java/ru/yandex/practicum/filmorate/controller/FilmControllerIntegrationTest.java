@@ -42,7 +42,7 @@ class FilmControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenCreateFilmWithBlankName() throws Exception {
+    void createFilmWithEmptyNameShouldFail() throws Exception {
         Film film = new Film();
         film.setName("");
         film.setDescription("Описание");
@@ -56,7 +56,7 @@ class FilmControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenCreateFilmWithLongDescription() throws Exception {
+    void createFilmWithTooLongDescriptionShouldFail() throws Exception {
         Film film = new Film();
         film.setName("Название");
         film.setDescription("A".repeat(201)); // 201 characters
@@ -70,7 +70,7 @@ class FilmControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenCreateFilmWithNegativeDuration() throws Exception {
+    void createFilmWithNegativeDurationShouldFail() throws Exception {
         Film film = new Film();
         film.setName("Название");
         film.setDescription("Описание");
@@ -84,7 +84,7 @@ class FilmControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnNotFoundWhenUpdateFilmWithNonExistentId() throws Exception {
+    void shouldReturnNotFoundWhenUpdateNonExistentFilm() throws Exception {
         Film film = new Film();
         film.setId(9999L);
         film.setName("Обновленное название");
@@ -113,7 +113,7 @@ class FilmControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenCreateFilmWithEarlyReleaseDate() throws Exception {
+    void createFilmWithEarlyReleaseDateShouldFail() throws Exception {
         Film film = new Film();
         film.setName("Слишком ранний фильм");
         film.setDescription("Описание");
@@ -143,7 +143,7 @@ class FilmControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenUpdateFilmWithEarlyReleaseDate() throws Exception {
+    void updateFilmWithEarlyReleaseDateShouldFail() throws Exception {
         // Сначала создаем валидный фильм
         Film film = new Film();
         film.setName("Название");

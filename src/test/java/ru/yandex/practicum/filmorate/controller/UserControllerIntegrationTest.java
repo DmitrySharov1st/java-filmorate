@@ -42,7 +42,7 @@ class UserControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenCreateUserWithInvalidEmail() throws Exception {
+    void createUserWithBadEmailShouldFail() throws Exception {
         User user = new User();
         user.setEmail("invalid-email");
         user.setLogin("validlogin");
@@ -55,7 +55,7 @@ class UserControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenCreateUserWithBlankLogin() throws Exception {
+    void createUserWithEmptyLoginShouldFail() throws Exception {
         User user = new User();
         user.setEmail("test@mail.ru");
         user.setLogin("");
@@ -68,7 +68,7 @@ class UserControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenCreateUserWithLoginContainingSpaces() throws Exception {
+    void createUserWithSpacedLoginShouldFail() throws Exception {
         User user = new User();
         user.setEmail("test@mail.ru");
         user.setLogin("login with spaces");
@@ -96,7 +96,7 @@ class UserControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnNotFoundWhenUpdateUserWithNonExistentId() throws Exception {
+    void updateUserWithInvalidIdShouldReturnNotFound() throws Exception {
         User user = new User();
         user.setId(9999L);
         user.setEmail("test@mail.ru");
