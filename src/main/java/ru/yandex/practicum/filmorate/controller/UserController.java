@@ -1,40 +1,52 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import jakarta.validation.Valid;
-import java.util.*;
+import jakarta.validation.constraints.Positive;
+import java.util.Collection;
+import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private final Map<Long, User> users = new HashMap<>();
-    private long nextId = 1;
+    private final UserStorage userStorage;
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserStorage userStorage, UserService userService) {
+        this.userStorage = userStorage;
+        this.userService = userService;
+    }
 
     @GetMapping
     public Collection<User> findAll() {
-        log.info("Получен запрос на получение всех пользователей. Текущее количество: {}", users.size());
-        return users.values();
+        log.info("Получен запрос на получение всех пользователей");
+        return userStorage.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public User findById(@PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id) {
+        log.info("Получен запрос на получение пользователя с ID: {}", id);
+        return userStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + id + " не найден"));
     }
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
         log.info("Получен запрос на создание пользователя: {}", user);
-
-        // Если имя не указано, используем логин
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-
-        user.setId(getNextId());
-        users.put(user.getId(), user);
-        log.info("Пользователь успешно создан с ID: {}", user.getId());
-        return user;
+        return userStorage.create(user);
     }
 
     @PutMapping
@@ -45,35 +57,48 @@ public class UserController {
             throw new ValidationException("ID должен быть указан");
         }
 
-        if (!users.containsKey(user.getId())) {
+        if (!userStorage.existsById(user.getId())) {
             log.error("Пользователь с ID {} не найден", user.getId());
             throw new NotFoundException(String.format("Пользователь с ID %d не найден", user.getId()));
         }
 
-        User existingUser = users.get(user.getId());
-
-        // Обновляем только переданные поля
-        if (user.getEmail() != null) {
-            existingUser.setEmail(user.getEmail());
-        }
-        if (user.getLogin() != null) {
-            existingUser.setLogin(user.getLogin());
-        }
-        if (user.getName() != null && !user.getName().isBlank()) {
-            existingUser.setName(user.getName());
-        } else if (user.getLogin() != null) {
-            // Если имя не указано, но логин обновлен - используем логин как имя
-            existingUser.setName(user.getLogin());
-        }
-        if (user.getBirthday() != null) {
-            existingUser.setBirthday(user.getBirthday());
-        }
-
-        log.info("Пользователь с ID {} успешно обновлен", user.getId());
-        return existingUser;
+        return userStorage.update(user);
     }
 
-    private long getNextId() {
-        return nextId++;
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(
+            @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id,
+            @PathVariable @Positive(message = "ID друга должен быть положительным числом") Long friendId) {
+
+        if (id.equals(friendId)) {
+            log.error("Пользователь {} пытается добавить себя в друзья", id);
+            throw new ValidationException("Нельзя добавить самого себя в друзья");
+        }
+
+        log.info("Получен запрос на добавление в друзья: пользователь {} добавляет {}", id, friendId);
+        userService.addFriend(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content
+    public void removeFriend(
+            @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id,
+            @PathVariable @Positive(message = "ID друга должен быть положительным числом") Long friendId) {
+        log.info("Получен запрос на удаление из друзей: пользователь {} удаляет {}", id, friendId);
+        userService.removeFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id) {
+        log.info("Получен запрос на получение друзей пользователя {}", id);
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(
+            @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id,
+            @PathVariable @Positive(message = "ID другого пользователя должен быть положительным числом") Long otherId) {
+        log.info("Получен запрос на получение общих друзей пользователей {} и {}", id, otherId);
+        return userService.getCommonFriends(id, otherId);
     }
 }

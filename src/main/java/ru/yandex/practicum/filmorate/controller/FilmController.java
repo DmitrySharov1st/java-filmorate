@@ -1,37 +1,55 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private final Map<Long, Film> films = new HashMap<>();
-    private long nextId = 1;
+    private final FilmStorage filmStorage;
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmStorage filmStorage, FilmService filmService) {
+        this.filmStorage = filmStorage;
+        this.filmService = filmService;
+    }
 
     @GetMapping
     public Collection<Film> findAll() {
-        log.info("Получен запрос на получение всех фильмов. Текущее количество: {}", films.size());
-        return films.values();
+        log.info("Получен запрос на получение всех фильмов");
+        return filmStorage.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Film findById(@PathVariable @Positive(message = "ID фильма должен быть положительным числом") Long id) {
+        log.info("Получен запрос на получение фильма с ID: {}", id);
+        return filmStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException("Фильм с ID " + id + " не найден"));
     }
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         log.info("Получен запрос на создание фильма: {}", film);
         validateFilmReleaseDate(film);
-
-        film.setId(getNextId());
-        films.put(film.getId(), film);
-        log.info("Фильм успешно создан с ID: {}", film.getId());
-        return film;
+        return filmStorage.create(film);
     }
 
     @PutMapping
@@ -42,15 +60,39 @@ public class FilmController {
             throw new ValidationException("ID должен быть указан");
         }
 
-        if (!films.containsKey(film.getId())) {
+        if (!filmStorage.existsById(film.getId())) {
             log.error("Фильм с ID {} не найден", film.getId());
             throw new NotFoundException(String.format("Фильм с ID %d не найден", film.getId()));
         }
 
         validateFilmReleaseDate(film);
-        films.put(film.getId(), film);
-        log.info("Фильм с ID {} успешно обновлен", film.getId());
-        return film;
+        return filmStorage.update(film);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(
+            @PathVariable @Positive(message = "ID фильма должен быть положительным числом") Long id,
+            @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long userId) {
+        log.info("Получен запрос на добавление лайка фильму {} от пользователя {}", id, userId);
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content
+    public void removeLike(
+            @PathVariable @Positive(message = "ID фильма должен быть положительным числом") Long id,
+            @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long userId) {
+        log.info("Получен запрос на удаление лайка фильму {} от пользователя {}", id, userId);
+        filmService.removeLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "Параметр count должен быть не менее 1")
+            int count) {
+        log.info("Получен запрос на получение {} популярных фильмов", count);
+        return filmService.getPopularFilms(count);
     }
 
     private void validateFilmReleaseDate(Film film) {
@@ -58,9 +100,5 @@ public class FilmController {
             log.error("Дата релиза фильма раньше 28 декабря 1895 года");
             throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
         }
-    }
-
-    private long getNextId() {
-        return nextId++;
     }
 }
