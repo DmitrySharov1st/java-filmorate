@@ -89,7 +89,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id) {
+    public List<User> getFriends(@PathVariable @Positive(message
+            = "ID пользователя должен быть положительным числом") Long id) {
         log.info("Получен запрос на получение друзей пользователя {}", id);
         return userService.getFriends(id);
     }
@@ -97,7 +98,8 @@ public class UserController {
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(
             @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id,
-            @PathVariable @Positive(message = "ID другого пользователя должен быть положительным числом") Long otherId) {
+            @PathVariable @Positive(message
+                    = "ID другого пользователя должен быть положительным числом") Long otherId) {
         log.info("Получен запрос на получение общих друзей пользователей {} и {}", id, otherId);
         return userService.getCommonFriends(id, otherId);
     }
