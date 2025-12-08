@@ -26,6 +26,9 @@ public class FilmController {
     private final FilmStorage filmStorage;
     private final FilmService filmService;
 
+    // Константы для путей
+    private static final String LIKE_PATH = "/{id}/like/{userId}";
+
     @Autowired
     public FilmController(FilmStorage filmStorage, FilmService filmService) {
         this.filmStorage = filmStorage;
@@ -42,7 +45,7 @@ public class FilmController {
     public Film findById(@PathVariable @Positive(message = "ID фильма должен быть положительным числом") Long id) {
         log.info("Получен запрос на получение фильма с ID: {}", id);
         return filmStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Фильм с ID " + id + " не найден"));
+                .orElseThrow(() -> new NotFoundException(String.format("Фильм с ID %d не найден", id)));
     }
 
     @PostMapping
@@ -69,7 +72,7 @@ public class FilmController {
         return filmStorage.update(film);
     }
 
-    @PutMapping("/{id}/like/{userId}")
+    @PutMapping(LIKE_PATH)
     public void addLike(
             @PathVariable @Positive(message = "ID фильма должен быть положительным числом") Long id,
             @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long userId) {
@@ -77,7 +80,7 @@ public class FilmController {
         filmService.addLike(id, userId);
     }
 
-    @DeleteMapping("/{id}/like/{userId}")
+    @DeleteMapping(LIKE_PATH)
     @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content
     public void removeLike(
             @PathVariable @Positive(message = "ID фильма должен быть положительным числом") Long id,

@@ -24,6 +24,9 @@ public class UserController {
     private final UserStorage userStorage;
     private final UserService userService;
 
+    // Константы для путей
+    private static final String FRIEND_PATH = "/{id}/friends/{friendId}";
+
     @Autowired
     public UserController(UserStorage userStorage, UserService userService) {
         this.userStorage = userStorage;
@@ -37,10 +40,11 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User findById(@PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id) {
+    public User findById(@PathVariable @Positive(message
+            = "ID пользователя должен быть положительным числом") Long id) {
         log.info("Получен запрос на получение пользователя с ID: {}", id);
         return userStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + id + " не найден"));
+                .orElseThrow(() -> new NotFoundException(String.format("Пользователь с ID %d не найден", id)));
     }
 
     @PostMapping
@@ -65,7 +69,7 @@ public class UserController {
         return userStorage.update(user);
     }
 
-    @PutMapping("/{id}/friends/{friendId}")
+    @PutMapping(FRIEND_PATH)
     public void addFriend(
             @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id,
             @PathVariable @Positive(message = "ID друга должен быть положительным числом") Long friendId) {
@@ -79,7 +83,7 @@ public class UserController {
         userService.addFriend(id, friendId);
     }
 
-    @DeleteMapping("/{id}/friends/{friendId}")
+    @DeleteMapping(FRIEND_PATH)
     @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content
     public void removeFriend(
             @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id,
