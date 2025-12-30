@@ -20,7 +20,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User create(User user) {
-        // Если имя не указано, используем логин
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
@@ -35,7 +34,6 @@ public class InMemoryUserStorage implements UserStorage {
     public User update(User user) {
         User existingUser = users.get(user.getId());
 
-        // Обновляем только переданные поля
         if (user.getEmail() != null) {
             existingUser.setEmail(user.getEmail());
         }

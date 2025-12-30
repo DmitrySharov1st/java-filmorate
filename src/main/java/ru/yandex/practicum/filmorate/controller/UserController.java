@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,11 +25,11 @@ public class UserController {
     private final UserStorage userStorage;
     private final UserService userService;
 
-    // Константы для путей
     private static final String FRIEND_PATH = "/{id}/friends/{friendId}";
+    private static final String CONFIRM_FRIEND_PATH = "/{id}/friends/{friendId}/confirm";
 
     @Autowired
-    public UserController(UserStorage userStorage, UserService userService) {
+    public UserController(@Qualifier("userDbStorage") UserStorage userStorage, UserService userService) {
         this.userStorage = userStorage;
         this.userService = userService;
     }
@@ -83,8 +84,18 @@ public class UserController {
         userService.addFriend(id, friendId);
     }
 
+    //оставляем для обратной совместимости
+    @PutMapping("/{id}/friends/{friendId}/confirm")
+    public void confirmFriend(
+            @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id,
+            @PathVariable @Positive(message = "ID друга должен быть положительным числом") Long friendId) {
+
+        log.info("Получен запрос на подтверждение дружбы: пользователь {} подтверждает дружбу с {}", id, friendId);
+        userService.confirmFriend(id, friendId);
+    }
+
     @DeleteMapping(FRIEND_PATH)
-    @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeFriend(
             @PathVariable @Positive(message = "ID пользователя должен быть положительным числом") Long id,
             @PathVariable @Positive(message = "ID друга должен быть положительным числом") Long friendId) {
