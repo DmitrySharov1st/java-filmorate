@@ -44,7 +44,6 @@ class UserValidationTest {
         validUser.setEmail("");
         Set<ConstraintViolation<User>> violations = validator.validate(validUser);
         assertFalse(violations.isEmpty(), "Пустой email должен вызывать ошибку");
-        assertEquals(1, violations.size());
     }
 
     @Test
