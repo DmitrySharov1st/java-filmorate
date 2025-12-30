@@ -1,30 +1,32 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
+import lombok.AccessLevel;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Film {
-    private Long id;
+    Long id;
 
     @NotBlank(message = "Название не может быть пустым")
-    private String name;
+    String name;
 
     @Size(max = 200, message = "Максимальная длина описания — 200 символов")
-    private String description;
+    String description;
 
     @NotNull(message = "Дата релиза должна быть указана")
-    private LocalDate releaseDate;
+    LocalDate releaseDate;
 
     @NotNull(message = "Продолжительность фильма должна быть указана")
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
-    private Integer duration;
+    Integer duration;
 
-    private MpaRating mpa;
-    private Set<Genre> genres = new LinkedHashSet<>();
-    private Set<Long> likes = new HashSet<>();
+    MpaRating mpa;
+    Set<Genre> genres = new LinkedHashSet<>();
+    Set<Long> likes = new LinkedHashSet<>();
 }

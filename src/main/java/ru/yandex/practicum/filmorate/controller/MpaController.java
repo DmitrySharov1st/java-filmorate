@@ -31,6 +31,6 @@ public class MpaController {
     public MpaRating getMpaById(@PathVariable Long id) {
         log.info("Получен запрос на получение рейтинга MPA с ID: {}", id);
         return mpaDbStorage.getMpaById(id)
-                .orElseThrow(() -> new NotFoundException("Рейтинг MPA с ID " + id + " не найден"));
+                .orElseThrow(() -> new NotFoundException(String.format("Рейтинг MPA с ID %d не найден", id)));
     }
 }

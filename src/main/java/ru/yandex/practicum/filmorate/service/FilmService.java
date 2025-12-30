@@ -27,11 +27,11 @@ public class FilmService {
 
     public void addLike(Long filmId, Long userId) {
         if (!userDbStorage.existsById(userId)) {
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", userId));
         }
 
         if (!filmDbStorage.existsById(filmId)) {
-            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+            throw new NotFoundException(String.format("Фильм с ID %d не найден", filmId));
         }
 
         filmDbStorage.addLike(filmId, userId);
@@ -40,11 +40,11 @@ public class FilmService {
 
     public void removeLike(Long filmId, Long userId) {
         if (!userDbStorage.existsById(userId)) {
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", userId));
         }
 
         if (!filmDbStorage.existsById(filmId)) {
-            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+            throw new NotFoundException(String.format("Фильм с ID %d не найден", filmId));
         }
 
         filmDbStorage.removeLike(filmId, userId);

@@ -31,6 +31,6 @@ public class GenreController {
     public Genre getGenreById(@PathVariable Long id) {
         log.info("Получен запрос на получение жанра с ID: {}", id);
         return genreDbStorage.getGenreById(id)
-                .orElseThrow(() -> new NotFoundException("Жанр с ID " + id + " не найден"));
+                .orElseThrow(() -> new NotFoundException(String.format("Жанр с ID %d не найден", id)));
     }
 }

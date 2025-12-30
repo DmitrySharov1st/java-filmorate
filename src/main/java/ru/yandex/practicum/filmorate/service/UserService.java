@@ -27,11 +27,11 @@ public class UserService {
         }
 
         if (!userDbStorage.existsById(userId)) {
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", userId));
         }
 
         if (!userDbStorage.existsById(friendId)) {
-            throw new NotFoundException("Пользователь с ID " + friendId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", friendId));
         }
 
         userDbStorage.addFriend(userId, friendId);
@@ -39,11 +39,11 @@ public class UserService {
 
     public void confirmFriend(Long userId, Long friendId) {
         if (!userDbStorage.existsById(userId)) {
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", userId));
         }
 
         if (!userDbStorage.existsById(friendId)) {
-            throw new NotFoundException("Пользователь с ID " + friendId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", friendId));
         }
 
         userDbStorage.confirmFriend(userId, friendId);
@@ -51,11 +51,11 @@ public class UserService {
 
     public void removeFriend(Long userId, Long friendId) {
         if (!userDbStorage.existsById(userId)) {
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", userId));
         }
 
         if (!userDbStorage.existsById(friendId)) {
-            throw new NotFoundException("Пользователь с ID " + friendId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", friendId));
         }
 
         userDbStorage.removeFriend(userId, friendId);
@@ -63,7 +63,7 @@ public class UserService {
 
     public List<User> getFriends(Long userId) {
         if (!userDbStorage.existsById(userId)) {
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", userId));
         }
 
         return userDbStorage.getFriends(userId);
@@ -71,11 +71,11 @@ public class UserService {
 
     public List<User> getCommonFriends(Long userId, Long otherId) {
         if (!userDbStorage.existsById(userId)) {
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", userId));
         }
 
         if (!userDbStorage.existsById(otherId)) {
-            throw new NotFoundException("Пользователь с ID " + otherId + " не найден");
+            throw new NotFoundException(String.format("Пользователь с ID %d не найден", otherId));
         }
 
         return userDbStorage.getCommonFriends(userId, otherId);

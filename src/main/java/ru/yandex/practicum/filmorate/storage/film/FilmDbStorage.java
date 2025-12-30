@@ -76,16 +76,16 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        // Проверка существования MPA
+        // Проверка существования MPA (дополнительная защита)
         if (!mpaDbStorage.getMpaById(film.getMpa().getId()).isPresent()) {
-            throw new NotFoundException("MPA рейтинг с ID " + film.getMpa().getId() + " не найден");
+            throw new NotFoundException(String.format("MPA рейтинг с ID %d не найден", film.getMpa().getId()));
         }
 
-        // Проверка существования жанров
+        // Проверка существования жанров (дополнительная защита)
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             for (Genre genre : film.getGenres()) {
                 if (!genreDbStorage.getGenreById(genre.getId()).isPresent()) {
-                    throw new NotFoundException("Жанр с ID " + genre.getId() + " не найден");
+                    throw new NotFoundException(String.format("Жанр с ID %d не найден", genre.getId()));
                 }
             }
         }
@@ -113,21 +113,23 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         log.info("Фильм создан с ID: {}", filmId);
-        return findById(filmId).orElseThrow();
+        return findById(filmId).orElseThrow(() ->
+                new NotFoundException(String.format("Фильм с ID %d не найден после создания", filmId))
+        );
     }
 
     @Override
     public Film update(Film film) {
-        // Проверка существования MPA
+        // Проверка существования MPA (дополнительная защита)
         if (!mpaDbStorage.getMpaById(film.getMpa().getId()).isPresent()) {
-            throw new NotFoundException("MPA рейтинг с ID " + film.getMpa().getId() + " не найден");
+            throw new NotFoundException(String.format("MPA рейтинг с ID %d не найден", film.getMpa().getId()));
         }
 
-        // Проверка существования жанров
+        // Проверка существования жанров (дополнительная защита)
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             for (Genre genre : film.getGenres()) {
                 if (!genreDbStorage.getGenreById(genre.getId()).isPresent()) {
-                    throw new NotFoundException("Жанр с ID " + genre.getId() + " не найден");
+                    throw new NotFoundException(String.format("Жанр с ID %d не найден", genre.getId()));
                 }
             }
         }
@@ -135,7 +137,7 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "UPDATE film SET name = ?, description = ?, release_date = ?, " +
                 "duration = ?, mpa_rating_id = ? WHERE id = ?";
 
-        jdbcTemplate.update(sql,
+        int updatedRows = jdbcTemplate.update(sql,
                 film.getName(),
                 film.getDescription(),
                 java.sql.Date.valueOf(film.getReleaseDate()),
@@ -143,10 +145,16 @@ public class FilmDbStorage implements FilmStorage {
                 film.getMpa().getId(),
                 film.getId());
 
+        if (updatedRows == 0) {
+            throw new NotFoundException(String.format("Фильм с ID %d не найден для обновления", film.getId()));
+        }
+
         updateFilmGenres(film.getId(), film.getGenres());
 
         log.info("Фильм с ID {} обновлен", film.getId());
-        return findById(film.getId()).orElseThrow();
+        return findById(film.getId()).orElseThrow(() ->
+                new NotFoundException(String.format("Фильм с ID %d не найден после обновления", film.getId()))
+        );
     }
 
     @Override
@@ -167,7 +175,10 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public void delete(Long id) {
         String sql = "DELETE FROM film WHERE id = ?";
-        jdbcTemplate.update(sql, id);
+        int deletedRows = jdbcTemplate.update(sql, id);
+        if (deletedRows == 0) {
+            throw new NotFoundException(String.format("Фильм с ID %d не найден для удаления", id));
+        }
         log.info("Фильм с ID {} удален", id);
     }
 
@@ -211,13 +222,19 @@ public class FilmDbStorage implements FilmStorage {
             jdbcTemplate.update(sql, filmId, userId);
             log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
         } else {
-            throw new ValidationException("Лайк от пользователя " + userId + " фильму " + filmId + " уже существует");
+            throw new ValidationException(String.format(
+                    "Лайк от пользователя %d фильму %d уже существует", userId, filmId));
         }
     }
 
     public void removeLike(Long filmId, Long userId) {
         String sql = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
-        jdbcTemplate.update(sql, filmId, userId);
+        int deletedRows = jdbcTemplate.update(sql, filmId, userId);
+        if (deletedRows == 0) {
+            log.warn("Попытка удалить несуществующий лайк: пользователь {}, фильм {}", userId, filmId);
+        } else {
+            log.info("Пользователь {} удалил лайк с фильма {}", userId, filmId);
+        }
     }
 
     public List<Film> getPopularFilms(int count) {
