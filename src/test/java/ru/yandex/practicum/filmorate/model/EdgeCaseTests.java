@@ -27,7 +27,6 @@ class EdgeCaseTests {
         User user = new User();
         Set<ConstraintViolation<User>> violations = validator.validate(user);
 
-        // Должны быть ошибки для обязательных полей
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream().anyMatch(v
                 -> v.getPropertyPath().toString().equals("email")));
@@ -40,7 +39,6 @@ class EdgeCaseTests {
         Film film = new Film();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
-        // Должны быть ошибки для обязательных полей
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream().anyMatch(v
                 -> v.getPropertyPath().toString().equals("name")));
@@ -54,7 +52,7 @@ class EdgeCaseTests {
     void shouldAcceptMaximumValidDescriptionLength() {
         Film film = new Film();
         film.setName("Название");
-        film.setDescription("A".repeat(200)); // Максимальная длина описания
+        film.setDescription("A".repeat(200));
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(120);
 
@@ -67,7 +65,7 @@ class EdgeCaseTests {
         User user = new User();
         user.setEmail("test@mail.ru");
         user.setLogin("testlogin");
-        user.setBirthday(LocalDate.now().plusYears(1)); // День рождения в будущем
+        user.setBirthday(LocalDate.now().plusYears(1));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty(), "День рождения в будущем должен вызывать ошибку");
@@ -78,7 +76,7 @@ class EdgeCaseTests {
         User user = new User();
         user.setEmail("test@mail.ru");
         user.setLogin("testlogin");
-        user.setBirthday(LocalDate.of(1800, 1, 1)); // Очень старый пользователь
+        user.setBirthday(LocalDate.of(1800, 1, 1));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertTrue(violations.isEmpty(), "Любая дата рождения в прошлом должна быть допустима");
@@ -89,7 +87,7 @@ class EdgeCaseTests {
         User user = new User();
         user.setEmail("test@mail.ru");
         user.setLogin("testlogin");
-        user.setBirthday(LocalDate.now()); // Сегодняшняя дата
+        user.setBirthday(LocalDate.now());
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertTrue(violations.isEmpty(), "Сегодняшняя дата рождения должна быть допустима");
@@ -98,12 +96,10 @@ class EdgeCaseTests {
     @Test
     void shouldHandleFilmWithNullValues() {
         Film film = new Film();
-        // Не устанавливаем обязательные поля
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(3, violations.size(), "Должны быть ошибки для name, releaseDate и duration");
 
-        // Дополнительная проверка, что нарушения именно для этих полей
         assertTrue(violations.stream().anyMatch(v
                 -> v.getPropertyPath().toString().equals("name")));
         assertTrue(violations.stream().anyMatch(v
@@ -115,7 +111,6 @@ class EdgeCaseTests {
     @Test
     void shouldHandleUserWithNullValues() {
         User user = new User();
-        // Не устанавливаем обязательные поля
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertEquals(2, violations.size(), "Должны быть ошибки для email и login");
